@@ -3,8 +3,10 @@ import pandas as pd
 import numpy as np
 import cv2
 import glob
+from skimage.registration import phase_cross_correlation
+from skimage.io import imread
 import skimage.io as io
-import matplotlib as plt
+import matplotlib.pyplot as plt
 from PIL import Image
 
 path_to_files = 'C:/Users/Karola/Desktop/ZTDT_termowizja/'
@@ -77,5 +79,19 @@ if __name__ == '__main__':
             cv2.waitKey(0)
             cv2.destroyAllWindows()
 
+    vis = reference_point_coordintes[0:4]
+    termo = reference_point_coordintes[4:9]
 
+    sift = cv2.xfeatures2d.SIFT_create()
 
+    keypoints_1, descriptors_1 = sift.detectAndCompute(visible_lst[0], None)
+    keypoints_2, descriptors_2 = sift.detectAndCompute(thermal_list[0], None)
+
+    # feature matching
+    bf = cv2.BFMatcher(cv2.NORM_L1, crossCheck=True)
+
+    matches = bf.match(descriptors_1, descriptors_2)
+    matches = sorted(matches, key=lambda x: x.distance)
+
+    img3 = cv2.drawMatches(visible_lst[0], keypoints_1, thermal_list[0], keypoints_2, matches[:50], thermal_list[0], flags=2)
+    plt.imshow(img3), plt.show()
